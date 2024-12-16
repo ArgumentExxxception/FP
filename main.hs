@@ -2,6 +2,7 @@ import Control.Monad.State
 import Data.Maybe (fromMaybe)
 import AritmeticOperations (add, minus, multi, division)
 import StackOperations (pop, push)
+import StringParser (parsePrintString)
 
 type Stack = [Int]
 type StackMachine = State Stack
@@ -45,5 +46,7 @@ printStack s = putStrLn $ "Stack: " ++ show s
 main :: IO ()
 main = do
     let initialStack = []
+    parsePrintString ". \"Hello world!\""
+    parsePrintString "#Комментарий"
     let finalStack = execState (push 5 >> push 3 >> add >> push 5 >> multi) []
     printStack finalStack
