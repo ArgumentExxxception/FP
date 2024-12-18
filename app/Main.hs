@@ -1,8 +1,9 @@
+module Main where
 import Control.Monad.State
 import Data.Maybe (fromMaybe)
 import AritmeticOperations (add, minus, multi, division)
-import StackOperations (pop, push)
-import StringParser (parsePrintString)
+import StackOperations (pop, push, dup, swap, rot, over)
+import StringParser (parsePrintString, printString)
 
 type Stack = [Int]
 type StackMachine = State Stack
@@ -14,7 +15,7 @@ eq = do
 
     case (a,b) of
         (Just x, Just y) -> do
-            push (if x == y then 1 else 0)
+            push (if x == y then -1 else 0)
             return (Just ())
         _ -> return Nothing
 
@@ -25,7 +26,7 @@ ls = do
 
     case (a,b) of
         (Just x, Just y) -> do
-            push (if x < y then 1 else 0)
+            push (if x < y then -1 else 0)
             return (Just ())
         _ -> return Nothing
 
@@ -36,7 +37,7 @@ mr = do
 
     case (a,b) of
         (Just x, Just y) -> do
-            push (if x > y then 1 else 0)
+            push (if x > y then -1 else 0)
             return (Just ())
         _ -> return Nothing
 
@@ -46,7 +47,7 @@ printStack s = putStrLn $ "Stack: " ++ show s
 main :: IO ()
 main = do
     let initialStack = []
-    parsePrintString ". \"Hello world!\""
-    parsePrintString "#Комментарий"
-    let finalStack = execState (push 5 >> push 3 >> add >> push 5 >> multi) []
+    let inputLines = [ ". \"Hello world!\"", "# Это комментарий #комментарий2", ". \"Не комментарий\"", "100 CR 200 CR 300 CR" ]
+    printString inputLines
+    let finalStack = execState (push 1 >> push 2 >> push 3 >> push 4 >> ls) []
     printStack finalStack
