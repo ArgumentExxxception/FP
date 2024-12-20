@@ -4,6 +4,7 @@ module AritmeticOperations
 ) where
 
 import Control.Monad.State
+import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (fromMaybe)
 import StackOperations(pop, push)
 
