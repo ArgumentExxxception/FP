@@ -5,7 +5,7 @@ import StackOperations (pop,push)
 
 type Stack = [Int]
 
-eq :: State Stack (Maybe ())
+eq :: StateT Stack IO (Maybe ())
 eq = do
     a <- pop
     b <- pop
@@ -16,7 +16,7 @@ eq = do
             return (Just ())
         _ -> return Nothing
 
-ls :: State Stack (Maybe ())
+ls :: StateT Stack IO (Maybe ())
 ls = do 
     a <- pop
     b <- pop
@@ -27,7 +27,7 @@ ls = do
             return (Just ())
         _ -> return Nothing
 
-mr :: State Stack (Maybe ())
+mr :: StateT Stack IO (Maybe ())
 mr = do 
     a <- pop
     b <- pop 

@@ -6,12 +6,12 @@ import Data.Maybe (fromMaybe)
 
 type Stack = [Int]
 
-pop :: State Stack (Maybe Int)
+pop :: StateT Stack IO (Maybe Int)
 pop = state $ \s -> case s of
     []     -> (Nothing, [])
     (x:xs) -> (Just x, xs)
 
-push :: Int -> State Stack ()
+push :: Int -> StateT Stack IO ()
 push x = modify (x:)
 
 dup = do 
