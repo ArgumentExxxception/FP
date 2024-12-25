@@ -10,7 +10,7 @@ import StackOperations(pop, push)
 
 type Stack = [Int]
 
-add :: State Stack (Maybe ())
+add :: StateT Stack IO (Maybe ())
 add = do 
     a <- pop
     b <- pop
@@ -20,7 +20,7 @@ add = do
             return (Just())
         _ -> return Nothing
 
-minus :: State Stack (Maybe ())
+minus :: StateT Stack IO (Maybe ())
 minus = do
     a <- pop
     b <- pop
@@ -30,7 +30,7 @@ minus = do
             return (Just ())
         _ -> return Nothing
 
-multi:: State Stack (Maybe ())
+multi:: StateT Stack IO (Maybe ())
 multi = do
     a <- pop
     b <- pop
@@ -40,7 +40,7 @@ multi = do
             return (Just ())
         _ -> return Nothing
 
-division :: State Stack (Maybe ())
+division :: StateT Stack IO (Maybe ())
 division = do
     a <- pop
     b <- pop
