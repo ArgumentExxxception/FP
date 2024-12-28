@@ -1,6 +1,6 @@
 module AritmeticOperations 
 (
-    add, minus, multi, division
+    add, minus, multi, division, modul
 ) where
 
 import Control.Monad.State
@@ -49,6 +49,19 @@ division = do
             if y /= 0
             then do
                 push (x `div` y)
+                return (Just ())
+            else return Nothing
+        _ -> return Nothing
+
+modul :: StateT Stack IO (Maybe ())
+modul = do
+    b <- pop
+    a <- pop
+    case (a, b) of
+        (Just x, Just y) ->
+            if y /= 0
+            then do
+                push (x `mod` y)
                 return (Just ())
             else return Nothing
         _ -> return Nothing

@@ -24,6 +24,7 @@ cmdParser = choice
     , Minus <$ lexeme (string "-")
     , Multi <$ lexeme (string "*")
     , Division <$ lexeme (string "/")
+    , Modul <$ lexeme (string "MOD")
     , Dup <$ lexeme (string "DUP")
     , Swap <$ lexeme (string "SWAP")
     , Rot <$ lexeme (string "ROT")
