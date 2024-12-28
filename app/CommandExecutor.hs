@@ -3,7 +3,7 @@ module CommandExecutor (Command(..), executeCommand, Program(..)) where
 import Control.Monad.State
 import CompairingOperations (eq, mr, ls)
 import StackOperations (pop, push, swap, dup, rot, over)
-import AritmeticOperations (add,minus,division,multi)
+import AritmeticOperations (add,minus,division,multi,modul)
 import Text.Megaparsec hiding (State)
 import Control.Monad.IO.Class (liftIO)
 
@@ -28,6 +28,7 @@ data Command = Push Int
     | PrintStackTop
     | Conditional { pass :: Program, alternative :: Maybe Program }
     | Do { body :: Program }
+    | Modul
     deriving (Show, Eq)
 
 type Stack = [Int]
@@ -65,6 +66,7 @@ executeCommand Over = do
 executeCommand Mr = mr
 executeCommand Ls = ls
 executeCommand Eq = eq
+executeCommand Modul = modul
 
 executeCommand PrintStackTop = do
     value <- pop
@@ -101,3 +103,15 @@ executeCommand (Conditional (Program passBranch) Nothing) = do
     case condition of
         Just _ -> mapM_ executeCommand passBranch >> return (Just ())
         _ -> return Nothing
+
+executeCommand (Do (Program body)) = do
+    loop
+  where
+    loop :: StateT Stack IO (Maybe ())
+    loop = do
+        mapM_ executeCommand body
+        condition <- pop
+        case condition of
+            Just 0 -> return (Just ())
+            Just _ -> loop
+            _ -> return Nothing
