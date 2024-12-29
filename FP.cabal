@@ -75,7 +75,7 @@ executable FP
         tasty-hunit, 
         HUnit ^>= 1.6.2.0, 
         tasty-hedgehog, hedgehog ^>= 1.5,
-        QuickCheck >=2.14 && <2.16
+        tasty-quickcheck >=0.10
 
     -- Directories containing source files.
     hs-source-dirs:   app
