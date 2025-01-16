@@ -23,7 +23,7 @@ ls = do
 
     case (a,b) of
         (Just x, Just y) -> do
-            push (if x < y then -1 else 0)
+            push (if x < y then 1 else 0)
             return (Just ())
         _ -> return Nothing
 
@@ -34,6 +34,6 @@ mr = do
 
     case (a,b) of
         (Just x, Just y) -> do
-            push (if x > y then -1 else 0)
+            push (if x > y then 1 else 0)
             return (Just ())
         _ -> return Nothing

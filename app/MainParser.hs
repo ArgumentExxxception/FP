@@ -38,6 +38,7 @@ cmdParser = choice
     , ReadKey <$ lexeme (string "KEY")
     , conditionalParser
     , Do <$> (Program <$> (lexeme (string "DO") *> commandListParser <* lexeme (string "LOOP")))
+    , beginUntilParser
     ]
 
 conditionalParser :: Parser Command
@@ -56,6 +57,13 @@ doParser = do
     body <- commandListParser
     _ <- lexeme (string "LOOP")
     return $ Do (Program body)
+
+beginUntilParser :: Parser Command
+beginUntilParser = do
+    _ <- lexeme (string "BEGIN")
+    body <- commandListParser
+    _ <- lexeme (string "UNTIL")
+    return $ BeginUntil (Program body)
 
 
 commandListParser :: Parser [Command]

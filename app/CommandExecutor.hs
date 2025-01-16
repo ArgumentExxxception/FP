@@ -29,6 +29,7 @@ data Command = Push Int
     | Conditional { pass :: Program, alternative :: Maybe Program }
     | Do { body :: Program }
     | Modul
+    | BeginUntil Program
     deriving (Show, Eq)
 
 type Stack = [Int]
@@ -114,4 +115,15 @@ executeCommand (Do (Program body)) = do
         case condition of
             Just 0 -> return (Just ())
             Just _ -> loop
+            _ -> return Nothing
+
+executeCommand (BeginUntil (Program body)) = do
+    loop
+    return (Just ())
+  where
+    loop = do
+        _ <- mapM_ executeCommand body
+        condition <- pop
+        case condition of
+            Just 0 -> loop
             _ -> return Nothing
