@@ -11,22 +11,39 @@ import Test.Tasty.HUnit
 import Test.QuickCheck
 
 type Stack = [Int]
+type Memory = [(String, [Int])]
 type StackMachine = State Stack
 
 printStack :: Stack -> IO ()
 printStack s = putStrLn $ "Stack: " ++ show s
 
 main :: IO ()
-main = do
-    let strings = [". \"Hello!\"", "#комментарий", "100 CR 200 CR"]
+main = defaultMain tests
 
-    let input = "CREATE myarray 10 CELLS ALLOT"
+tests :: TestTree
+tests = testGroup "Colon Language Tests"
+    [ 
+        testCase "BEGIN UNTIL Test" $ do
+        result <- runTest "0 BEGIN DUP . 1 + DUP 10 = UNTIL"
+        result @?= Right [10,9,8,7,6,5,4,3,2,1,0],
+        testCase "CREATE myarray 10 CELLS ALLOT" $ do
+        result <- testForCheckMemory "CREATE myarray 10 CELLS ALLOT"
+        case result of
+            Right (stack, memory) -> do
+                stack @?= []
+                lookup "myarray" memory @?= Just (replicate 10 0) 
+    ]
 
-    case runParser programParser "" input of
-        Left err -> putStrLn $ errorBundlePretty err
-        Right commands -> do
-            let initialState = ([], [])
-            result <- execStateT (mapM_ executeCommand commands) initialState
-            print result
+runTest :: String -> IO (Either String Stack)
+runTest input = case runParser programParser "" input of
+    Left err -> return $ Left $ errorBundlePretty err
+    Right commands -> do
+        (stack, _) <- execStateT (mapM_ executeCommand commands) ([], [])
+        return $ Right stack
 
-    printString strings
+testForCheckMemory :: String -> IO (Either String (Stack, Memory))
+testForCheckMemory input = case runParser programParser "" input of
+    Left err -> return $ Left $ errorBundlePretty err
+    Right commands -> do
+        finalState <- execStateT (mapM_ executeCommand commands) ([], [])
+        return $ Right finalState

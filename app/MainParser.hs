@@ -23,8 +23,20 @@ cmdParser = choice
     [ createParser
     , cellsParser
     , allotParser
-    , Push <$> integer 
+    , Push <$> integer
+    , beginUntilParser
+    , Dup <$ lexeme (string "DUP")
+    , Add <$ lexeme (string "+")
+    , Eq <$ lexeme (string "=")
+    , PrintStackTop <$ lexeme (string ".")
     ]
+
+beginUntilParser :: Parser Command
+beginUntilParser = do
+    _ <- lexeme (string "BEGIN")
+    body <- commandListParser
+    _ <- lexeme (string "UNTIL")
+    return $ BeginUntil (Program body)
 
 createParser :: Parser Command
 createParser = do

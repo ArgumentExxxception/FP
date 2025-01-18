@@ -11,6 +11,22 @@ newtype Program = Program [Command]
     deriving (Show, Eq)
 
 data Command = Create String
+    | Add
+    | Pop
+    | Minus
+    | Multi
+    | Division
+    | Swap
+    | Dup
+    | Rot
+    | Over
+    | Mr
+    | Ls
+    | Eq
+    | Emit
+    | ReadKey
+    | PrintStackTop
+    | BeginUntil Program
     | Cells
     | Allot
     | Push Int
@@ -23,6 +39,48 @@ cellSize :: Int
 cellSize = 8
 
 executeCommand :: Command -> StateT (Stack, Memory) IO (Maybe ())
+
+executeCommand PrintStackTop = do
+    (stack, memory) <- get
+    case stack of
+        (x:_) -> do
+            liftIO $ print x
+            return (Just ())
+        [] -> do
+            return Nothing
+
+executeCommand Eq = eq
+executeCommand Mr = mr
+executeCommand Ls = ls
+executeCommand Add = add
+
+executeCommand (BeginUntil (Program body)) = do
+    loop
+    return (Just ())
+  where
+    loop = do
+        _ <- mapM_ executeCommand body
+        (stack, memory) <- get
+        condition <- pop
+        case condition of
+            Just 0 -> loop
+            _ -> liftIO (putStrLn "Выход из цикла")
+
+executeCommand Dup = do 
+    _ <- dup
+    return (Just())
+
+executeCommand Rot = do 
+    _ <- rot
+    return (Just())
+
+executeCommand Swap = do 
+    _ <- swap
+    return (Just())
+
+executeCommand Over = do
+    _ <- over
+    return (Just())
 
 executeCommand (Push n) = do
     push n
