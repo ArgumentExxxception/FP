@@ -5,6 +5,7 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Data.Void
 import CommandExecutor (Command(..), Program(..))
+import Debug.Trace (trace)
 
 type Parser = Parsec Void String
 
@@ -19,47 +20,45 @@ integer = lexeme L.decimal
 
 cmdParser :: Parser Command
 cmdParser = choice
-    [ Push <$> integer
-    , Add <$ lexeme (string "+")
-    , Minus <$ lexeme (string "-")
-    , Multi <$ lexeme (string "*")
-    , Division <$ lexeme (string "/")
-    , Modul <$ lexeme (string "MOD")
+    [ createParser
+    , cellsParser
+    , allotParser
+    , Push <$> integer
+    , beginUntilParser
     , Dup <$ lexeme (string "DUP")
-    , Swap <$ lexeme (string "SWAP")
-    , Rot <$ lexeme (string "ROT")
-    , Over <$ lexeme (string "OVER")
-    , Pop <$ lexeme (string "DROP")
+    , Add <$ lexeme (string "+")
     , Eq <$ lexeme (string "=")
-    , Mr <$ lexeme (string ">")
-    , Ls <$ lexeme (string "<")
-    , Emit <$ lexeme (string "EMIT")
     , PrintStackTop <$ lexeme (string ".")
-    , ReadKey <$ lexeme (string "KEY")
-    , conditionalParser
-    , Do <$> (Program <$> (lexeme (string "DO") *> commandListParser <* lexeme (string "LOOP")))
     ]
 
-conditionalParser :: Parser Command
-conditionalParser = do
-    _ <- lexeme (string "IF")
-    passBranch <- commandListParser
-    alternative <- optional $ do
-        _ <- lexeme (string "ELSE")
-        commandListParser
-    _ <- lexeme (string "THEN")
-    return $ Conditional (Program passBranch) (Program <$> alternative)
-
-doParser :: Parser Command
-doParser = do
-    _ <- lexeme (string "DO")
+beginUntilParser :: Parser Command
+beginUntilParser = do
+    _ <- lexeme (string "BEGIN")
     body <- commandListParser
-    _ <- lexeme (string "LOOP")
-    return $ Do (Program body)
+    _ <- lexeme (string "UNTIL")
+    return $ BeginUntil (Program body)
 
+createParser :: Parser Command
+createParser = do
+    _ <- lexeme (string "CREATE")
+    name <- lexeme identifier
+    return $ Create name
+
+cellsParser :: Parser Command
+cellsParser = do
+    _ <- lexeme (string "CELLS")
+    return Cells
+
+allotParser :: Parser Command
+allotParser = do
+    _ <- lexeme (string "ALLOT")
+    return Allot
 
 commandListParser :: Parser [Command]
 commandListParser = many cmdParser
 
 programParser :: Parser [Command]
 programParser = commandListParser <* eof
+
+identifier :: Parser String
+identifier = lexeme $ some (letterChar <|> char '-')

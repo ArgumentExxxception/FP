@@ -9,59 +9,60 @@ import Data.Maybe (fromMaybe)
 import StackOperations(pop, push)
 
 type Stack = [Int]
+type Memory = [(String, [Int])]
 
-add :: StateT Stack IO (Maybe ())
-add = do 
-    a <- pop
-    b <- pop
-    case (a,b) of
-        (Just x, Just y) -> do
-            push (x + y)
-            return (Just())
+add :: StateT (Stack, Memory) IO (Maybe ())
+add = do
+    (stack, memory) <- get
+    case stack of
+        (x:y:xs) -> do
+            let result = x + y
+            put (result : xs, memory)
+            return (Just ())
         _ -> return Nothing
 
-minus :: StateT Stack IO (Maybe ())
+minus :: StateT (Stack, Memory) IO (Maybe ())
 minus = do
-    a <- pop
-    b <- pop
-    case (a,b) of 
-        (Just x, Just y) -> do
-            push (x - y)
+    (stack, memory) <- get
+    case stack of
+        (x:y:xs) -> do
+            let result = y - x
+            put (result : xs, memory)
             return (Just ())
         _ -> return Nothing
 
-multi:: StateT Stack IO (Maybe ())
+multi :: StateT (Stack, Memory) IO (Maybe ())
 multi = do
-    a <- pop
-    b <- pop
-    case (a,b) of
-        (Just x, Just y) -> do
-            push (x * y)
+    (stack, memory) <- get
+    case stack of
+        (x:y:xs) -> do
+            let result = x * y
+            put (result : xs, memory)
             return (Just ())
         _ -> return Nothing
 
-division :: StateT Stack IO (Maybe ())
+division :: StateT (Stack, Memory) IO (Maybe ())
 division = do
-    a <- pop
-    b <- pop
-    case (a,b) of
-        (Just x, Just y) ->
-            if y /= 0
+    (stack, memory) <- get
+    case stack of
+        (x:y:xs) -> 
+            if x /= 0
             then do
-                push (x `div` y)
+                let result = y `div` x
+                put (result : xs, memory)
                 return (Just ())
             else return Nothing
         _ -> return Nothing
 
-modul :: StateT Stack IO (Maybe ())
+modul :: StateT (Stack, Memory) IO (Maybe ())
 modul = do
-    b <- pop
-    a <- pop
-    case (a, b) of
-        (Just x, Just y) ->
-            if y /= 0
+    (stack, memory) <- get
+    case stack of
+        (x:y:xs) -> 
+            if x /= 0
             then do
-                push (x `mod` y)
+                let result = y `mod` x
+                put (result : xs, memory)
                 return (Just ())
             else return Nothing
         _ -> return Nothing
