@@ -1,4 +1,4 @@
-module CommandExecutor (Command(..), executeCommand, Program(..)) where 
+module CommandExecutor (Command(..), executeCommand, Program(..), Memory) where 
 
 import Control.Monad.State
 import CompairingOperations (eq, mr, ls)
@@ -10,120 +10,55 @@ import Control.Monad.IO.Class (liftIO)
 newtype Program = Program [Command]
     deriving (Show, Eq)
 
-data Command = Push Int
-    | Add
-    | Pop
-    | Minus
-    | Multi
-    | Division
-    | Swap
-    | Dup
-    | Rot
-    | Over
-    | Mr
-    | Ls
-    | Eq
-    | Emit
-    | ReadKey
-    | PrintStackTop
-    | Conditional { pass :: Program, alternative :: Maybe Program }
-    | Do { body :: Program }
-    | Modul
-    | BeginUntil Program
+data Command = Create String
+    | Cells
+    | Allot
+    | Push Int
     deriving (Show, Eq)
 
-type Stack = [Int]
+type Stack = [Int] 
+type Memory = [(String, [Int])]
 
-executeCommand :: Command -> StateT [Int] IO (Maybe ())
+cellSize :: Int
+cellSize = 8
 
-executeCommand (Push n) =  do 
-    push n 
-    return (Just ())
-executeCommand Add = add
-executeCommand Division = division
-executeCommand Pop = do 
-    _ <- pop
-    return (Just ())
+executeCommand :: Command -> StateT (Stack, Memory) IO (Maybe ())
 
-executeCommand Minus = minus
-executeCommand Multi = multi
-
-executeCommand Swap = do 
-    _ <- swap 
+executeCommand (Push n) = do
+    push n
     return (Just ())
 
-executeCommand Dup = do 
-    _ <- dup
+executeCommand (Create name) = do
+    (stack, memory) <- get
+    let newMemory = (name, []) : memory
+    put (stack, newMemory)
+    liftIO $ putStrLn $ "Создана переменная/массив: '" ++ name ++ "'"
     return (Just ())
 
-executeCommand Rot = do 
-    _ <- rot
-    return (Just ())
-
-executeCommand Over = do
-    _ <- over
-    return (Just ())
-    
-executeCommand Mr = mr
-executeCommand Ls = ls
-executeCommand Eq = eq
-executeCommand Modul = modul
-
-executeCommand PrintStackTop = do
-    value <- pop
-    case value of
-        Just x -> do
-            liftIO $ print x
+executeCommand Cells = do
+    (stack, memory) <- get
+    case stack of
+        (x:xs) -> do
+            let result = x * cellSize
+            put (result : xs, memory)
+            liftIO $ putStrLn $ "Размер ячеек: " ++ show result
             return (Just ())
-        Nothing -> return Nothing
+        [] -> do
+            return Nothing
 
-executeCommand Emit = do
-    value <- pop
-    case value of
-        Just x | x >= 0 && x <= 255 -> do
-            liftIO $ putChar (toEnum x)
-            liftIO $ putStrLn ""
-            return (Just ())
-        _ -> return Nothing
-
-executeCommand ReadKey = do
-    liftIO $ putStrLn "Press a key:"
-    char <- liftIO getChar
-    push (fromEnum char)
-    return (Just ())
-
-executeCommand (Conditional (Program passBranch) (Just (Program alternativeBranch))) = do
-    condition <- pop
-    case condition of
-        Just 0 -> mapM_ executeCommand alternativeBranch >> return (Just ()) 
-        Just _ -> mapM_ executeCommand passBranch >> return (Just ())
-        _ -> return Nothing
-
-executeCommand (Conditional (Program passBranch) Nothing) = do
-    condition <- pop
-    case condition of
-        Just _ -> mapM_ executeCommand passBranch >> return (Just ())
-        _ -> return Nothing
-
-executeCommand (Do (Program body)) = do
-    loop
-  where
-    loop :: StateT Stack IO (Maybe ())
-    loop = do
-        mapM_ executeCommand body
-        condition <- pop
-        case condition of
-            Just 0 -> return (Just ())
-            Just _ -> loop
-            _ -> return Nothing
-
-executeCommand (BeginUntil (Program body)) = do
-    loop
-    return (Just ())
-  where
-    loop = do
-        _ <- mapM_ executeCommand body
-        condition <- pop
-        case condition of
-            Just 0 -> loop
-            _ -> return Nothing
+executeCommand Allot = do
+    (stack, memory) <- get
+    case stack of
+        (size:xs) -> do
+            case memory of
+                ((name, arr):rest) -> do
+                    let numCells = size `div` cellSize
+                    let newArr = arr ++ replicate numCells 0
+                    put (xs, (name, newArr) : rest)
+                    liftIO $ putStrLn $ "Выделено " ++ show size ++ " байтов для '" ++ name ++ "'"
+                    liftIO $ putStrLn $ "Размер массива: " ++ show numCells ++ " ячеек"
+                    return (Just ())
+                [] -> do
+                    return Nothing
+        [] -> do
+            return Nothing

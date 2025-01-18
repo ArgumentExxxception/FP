@@ -20,12 +20,13 @@ main :: IO ()
 main = do
     let strings = [". \"Hello!\"", "#комментарий", "100 CR 200 CR"]
 
-    let input = "1 BEGIN DUP 1 + DUP 3 = UNTIL"
+    let input = "CREATE myarray 10 CELLS ALLOT"
 
     case runParser programParser "" input of
         Left err -> putStrLn $ errorBundlePretty err
         Right commands -> do
-            result <- execStateT (mapM_ executeCommand commands) []
+            let initialState = ([], [])
+            result <- execStateT (mapM_ executeCommand commands) initialState
             print result
 
     printString strings
