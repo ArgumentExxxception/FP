@@ -1,19 +1,16 @@
-module StackOperations (pop , push, dup, swap, rot, over)
-where 
+module StackOperations (pop, push, dup, swap, rot, over)
+where
 
 import Control.Monad.State
-import Data.Maybe (fromMaybe)
+import Control.Monad.IO.Class (liftIO)
+import Types (StackValue(..), Stack, Memory)
 
-type Stack = [Int]
-type Memory = [(String, [Int])]
-
-push :: Int -> StateT (Stack, Memory) IO ()
-push n = do
+push :: StackValue -> StateT (Stack, Memory) IO ()
+push val = do
     (stack, memory) <- get
-    put (n : stack, memory)
-    liftIO $ putStrLn $ "Значение " ++ show n ++ " добавлено в стэк"
+    put (val : stack, memory)
 
-pop :: StateT (Stack, Memory) IO (Maybe Int)
+pop :: StateT (Stack, Memory) IO (Maybe StackValue)
 pop = do
     (stack, memory) <- get
     case stack of
@@ -50,6 +47,6 @@ over :: StateT (Stack, Memory) IO ()
 over = do
     a <- pop
     b <- pop
-    case (a,b) of
+    case (a, b) of
         (Just x, Just y) -> push y >> push x >> push y
         _ -> return ()
