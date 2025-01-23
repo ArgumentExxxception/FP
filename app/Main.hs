@@ -3,16 +3,13 @@ module Main where
 import Control.Monad.State
 import Data.Maybe (fromMaybe)
 import StringParser ( printString )
-import CommandExecutor (Command(..), executeCommand)
+import CommandExecutor (executeCommand)
+import Types (StackValue(..), Stack, Memory,Command(..),Program(..))
 import MainParser (programParser)
 import Text.Megaparsec (runParser, errorBundlePretty)
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.QuickCheck
-
-type Stack = [Int]
-type Memory = [(String, [Int])]
-type StackMachine = State Stack
 
 printStack :: Stack -> IO ()
 printStack s = putStrLn $ "Stack: " ++ show s
@@ -23,15 +20,21 @@ main = defaultMain tests
 tests :: TestTree
 tests = testGroup "Colon Language Tests"
     [ 
-        testCase "BEGIN UNTIL Test" $ do
-        result <- runTest "0 BEGIN DUP . 1 + DUP 10 = UNTIL"
-        result @?= Right [10,9,8,7,6,5,4,3,2,1,0],
-        testCase "CREATE myarray 10 CELLS ALLOT" $ do
-        result <- testForCheckMemory "CREATE myarray 10 CELLS ALLOT"
-        case result of
-            Right (stack, memory) -> do
-                stack @?= []
-                lookup "myarray" memory @?= Just (replicate 10 0) 
+        testCase "F+" $ do
+            result <- runTest "3.7 3.8 F+"
+            result @?= Right [FloatValue 7.5,FloatValue 3.8,FloatValue 3.7],
+
+        testCase "F-" $ do
+            result <- runTest "4.1 3.8 F-"
+            result @?= Right [FloatValue 0.2999999999999998,FloatValue 3.8,FloatValue 4.1],
+
+        testCase "F*" $ do
+            result <- runTest "5.5 6.5 F*"
+            result @?= Right [FloatValue 35.75,FloatValue 6.5,FloatValue 5.5],
+
+        testCase "F/" $ do
+            result <- runTest "3.3 3.3 F/"
+            result @?= Right [FloatValue 1.0,FloatValue 3.3,FloatValue 3.3]
     ]
 
 runTest :: String -> IO (Either String Stack)

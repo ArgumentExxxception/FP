@@ -3,37 +3,10 @@ module CommandExecutor (Command(..), executeCommand, Program(..), Memory) where
 import Control.Monad.State
 import CompairingOperations (eq, mr, ls)
 import StackOperations (pop, push, swap, dup, rot, over)
-import AritmeticOperations (add,minus,division,multi,modul)
+import AritmeticOperations (add, minus, multi, division, modul, fadd, fsub, fmul, fdiv)
 import Text.Megaparsec hiding (State)
 import Control.Monad.IO.Class (liftIO)
-
-newtype Program = Program [Command]
-    deriving (Show, Eq)
-
-data Command = Create String
-    | Add
-    | Pop
-    | Minus
-    | Multi
-    | Division
-    | Swap
-    | Dup
-    | Rot
-    | Over
-    | Mr
-    | Ls
-    | Eq
-    | Emit
-    | ReadKey
-    | PrintStackTop
-    | BeginUntil Program
-    | Cells
-    | Allot
-    | Push Int
-    deriving (Show, Eq)
-
-type Stack = [Int] 
-type Memory = [(String, [Int])]
+import Types (StackValue(..), Stack, Memory,Command(..),Program(..))
 
 cellSize :: Int
 cellSize = 8
@@ -53,6 +26,22 @@ executeCommand Eq = eq
 executeCommand Mr = mr
 executeCommand Ls = ls
 executeCommand Add = add
+executeCommand Minus = minus
+executeCommand Multi = multi
+executeCommand Division = division
+executeCommand Modul = modul
+executeCommand FAdd = fadd
+executeCommand FSub = fsub
+executeCommand FMul = fmul
+executeCommand FDiv = fdiv
+executeCommand (PushInt n) = do
+    (stack, memory) <- get
+    put (IntValue n : stack, memory)
+    return (Just ())
+executeCommand (PushFloat n) = do
+    (stack, memory) <- get
+    put (FloatValue n : stack, memory)
+    return (Just ())
 
 executeCommand (BeginUntil (Program body)) = do
     loop
@@ -63,7 +52,7 @@ executeCommand (BeginUntil (Program body)) = do
         (stack, memory) <- get
         condition <- pop
         case condition of
-            Just 0 -> loop
+            Just (IntValue 0) -> loop
             _ -> liftIO (putStrLn "Выход из цикла")
 
 executeCommand Dup = do 
@@ -82,10 +71,6 @@ executeCommand Over = do
     _ <- over
     return (Just())
 
-executeCommand (Push n) = do
-    push n
-    return (Just ())
-
 executeCommand (Create name) = do
     (stack, memory) <- get
     let newMemory = (name, []) : memory
@@ -96,18 +81,18 @@ executeCommand (Create name) = do
 executeCommand Cells = do
     (stack, memory) <- get
     case stack of
-        (x:xs) -> do
+        (IntValue x:xs) -> do
             let result = x * cellSize
-            put (result : xs, memory)
+            put (IntValue result : xs, memory)
             liftIO $ putStrLn $ "Размер ячеек: " ++ show result
             return (Just ())
-        [] -> do
+        _ -> do
             return Nothing
 
 executeCommand Allot = do
     (stack, memory) <- get
     case stack of
-        (size:xs) -> do
+        (IntValue size:xs) -> do
             case memory of
                 ((name, arr):rest) -> do
                     let numCells = size `div` cellSize
@@ -118,5 +103,5 @@ executeCommand Allot = do
                     return (Just ())
                 [] -> do
                     return Nothing
-        [] -> do
+        _ -> do
             return Nothing

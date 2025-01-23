@@ -1,68 +1,128 @@
 module AritmeticOperations 
 (
-    add, minus, multi, division, modul
+    add, minus, multi, division, modul,
+    fadd, fsub, fmul, fdiv
 ) where
 
 import Control.Monad.State
 import Control.Monad.IO.Class (liftIO)
-import Data.Maybe (fromMaybe)
-import StackOperations(pop, push)
-
-type Stack = [Int]
-type Memory = [(String, [Int])]
+import Types (StackValue(..), Stack, Memory)
+import StackOperations (push, pop)
 
 add :: StateT (Stack, Memory) IO (Maybe ())
 add = do
     (stack, memory) <- get
     case stack of
-        (x:y:xs) -> do
+        (IntValue x:IntValue y:rest) -> do
             let result = x + y
-            put (result : xs, memory)
+            push (IntValue result)
             return (Just ())
-        _ -> return Nothing
+        _ -> do
+            return Nothing
 
 minus :: StateT (Stack, Memory) IO (Maybe ())
 minus = do
     (stack, memory) <- get
     case stack of
-        (x:y:xs) -> do
+        (IntValue x:IntValue y:rest) -> do
             let result = y - x
-            put (result : xs, memory)
+            push (IntValue result)
             return (Just ())
-        _ -> return Nothing
+        _ -> do
+            return Nothing
 
 multi :: StateT (Stack, Memory) IO (Maybe ())
 multi = do
     (stack, memory) <- get
     case stack of
-        (x:y:xs) -> do
+        (IntValue x:IntValue y:rest) -> do
             let result = x * y
-            put (result : xs, memory)
+            push (IntValue result)
             return (Just ())
-        _ -> return Nothing
+        _ -> do
+            return Nothing
 
 division :: StateT (Stack, Memory) IO (Maybe ())
 division = do
     (stack, memory) <- get
     case stack of
-        (x:y:xs) -> 
+        (IntValue x:IntValue y:rest) -> do
             if x /= 0
-            then do
-                let result = y `div` x
-                put (result : xs, memory)
-                return (Just ())
-            else return Nothing
-        _ -> return Nothing
+                then do
+                    let result = y `div` x
+                    push (IntValue result)
+                    return (Just ())
+                else do
+                    liftIO $ putStrLn "Ошибка: деление на ноль"
+                    return Nothing
+        _ -> do
+            return Nothing
 
 modul :: StateT (Stack, Memory) IO (Maybe ())
 modul = do
     (stack, memory) <- get
     case stack of
-        (x:y:xs) -> 
+        (IntValue x:IntValue y:rest) -> do
             if x /= 0
-            then do
-                let result = y `mod` x
-                put (result : xs, memory)
-                return (Just ())
-            else return Nothing
-        _ -> return Nothing
+                then do
+                    let result = y `mod` x
+                    push (IntValue result)
+                    return (Just ())
+                else do
+                    liftIO $ putStrLn "Ошибка: деление на ноль"
+                    return Nothing
+        _ -> do
+            return Nothing
+
+fadd :: StateT (Stack, Memory) IO (Maybe ())
+fadd = do
+    (stack, memory) <- get
+    case popTwo stack of
+        Just (FloatValue x, FloatValue y, rest) -> do
+            let result = x + y
+            push (FloatValue result)
+            return (Just ())
+        _ -> do
+            return Nothing
+
+fsub :: StateT (Stack, Memory) IO (Maybe ())
+fsub = do
+    (stack, memory) <- get
+    case popTwo stack of
+        Just (FloatValue x, FloatValue y, rest) -> do
+            let result = y - x
+            push (FloatValue result)
+            return (Just ())
+        _ -> do
+            return Nothing
+
+fmul :: StateT (Stack, Memory) IO (Maybe ())
+fmul = do
+    (stack, memory) <- get
+    case popTwo stack of
+        Just (FloatValue x, FloatValue y, rest) -> do
+            let result = x * y
+            push (FloatValue result)
+            return (Just ())
+        _ -> do
+            return Nothing
+
+fdiv :: StateT (Stack, Memory) IO (Maybe ())
+fdiv = do
+    (stack, memory) <- get
+    case popTwo stack of
+        Just (FloatValue x, FloatValue y, rest) -> do
+            if x /= 0
+                then do
+                    let result = y / x
+                    push (FloatValue result)
+                    return (Just ())
+                else do
+                    liftIO $ putStrLn "Ошибка: деление на ноль"
+                    return Nothing
+        _ -> do
+            return Nothing
+
+popTwo :: Stack -> Maybe (StackValue, StackValue, Stack)
+popTwo (x:y:xs) = Just (x, y, xs)
+popTwo _ = Nothing
