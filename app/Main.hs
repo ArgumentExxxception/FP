@@ -34,7 +34,22 @@ tests = testGroup "Colon Language Tests"
 
         testCase "F/" $ do
             result <- runTest "3.3 3.3 F/"
-            result @?= Right [FloatValue 1.0,FloatValue 3.3,FloatValue 3.3]
+            result @?= Right [FloatValue 1.0,FloatValue 3.3,FloatValue 3.3],
+
+        testCase "FToS" $ do
+            result <- runTest "3.4 F>S"
+            result @?= Right [IntValue 3,FloatValue 3.4],
+
+        testCase "SToF" $ do
+            result <- runTest "4 S>F"
+            result @?= Right [FloatValue 4.0,IntValue 4],
+
+        testCase "CREATE myarray 10 CELLS ALLOT" $ do
+            result <- testForCheckMemory "CREATE myarray 10 CELLS ALLOT"
+            case result of
+                Right (stack, memory) -> do
+                    stack @?= []
+                    lookup "myarray" memory @?= Just (replicate 10 0) 
     ]
 
 runTest :: String -> IO (Either String Stack)

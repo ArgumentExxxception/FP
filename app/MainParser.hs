@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module MainParser (programParser) where
 
 import Text.Megaparsec
@@ -25,11 +26,18 @@ float = lexeme $ do
     fractional <- L.decimal
     return $ read (show whole ++ "." ++ show fractional)
 
+number :: Parser (Either Double Int)
+number = lexeme $ do
+    whole <- L.decimal
+    (try (char '.' >> L.decimal >>= \frac -> return (Left (read (show whole ++ "." ++ show frac))))
+        <|> return (Right whole))
+
 cmdParser :: Parser Command
 cmdParser = choice
     [ createParser
-    , PushFloat <$> float
-    , PushInt <$> integer
+    , number >>= \case
+        Left floatVal -> return $ PushFloat floatVal
+        Right intVal -> return $ PushInt intVal  
     , cellsParser
     , allotParser
     , beginUntilParser
@@ -41,6 +49,8 @@ cmdParser = choice
     , FSub <$ lexeme (string "F-")
     , FMul <$ lexeme (string "F*")
     , FDiv <$ lexeme (string "F/")
+    , FToS <$ lexeme (string "F>S")
+    , SToF <$ lexeme (string "S>F")
     ]
 
 beginUntilParser :: Parser Command
