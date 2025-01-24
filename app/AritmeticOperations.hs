@@ -1,7 +1,7 @@
 module AritmeticOperations 
 (
     add, minus, multi, division, modul,
-    fadd, fsub, fmul, fdiv
+    fadd, fsub, fmul, fdiv, fToS, sToF
 ) where
 
 import Control.Monad.State
@@ -120,6 +120,28 @@ fdiv = do
                 else do
                     liftIO $ putStrLn "Ошибка: деление на ноль"
                     return Nothing
+        _ -> do
+            return Nothing
+
+fToS :: StateT (Stack, Memory) IO (Maybe ())
+fToS = do
+    (stack, memory) <- get
+    case stack of
+        (FloatValue x:rest) -> do
+            let intValue = truncate x
+            push (IntValue intValue)
+            return (Just ())
+        _ -> do
+            return Nothing
+
+sToF :: StateT (Stack, Memory) IO (Maybe ())
+sToF = do
+    (stack, memory) <- get
+    case stack of
+        (IntValue x:rest) -> do
+            let floatValue = fromIntegral x
+            push (FloatValue floatValue)
+            return (Just ())
         _ -> do
             return Nothing
 

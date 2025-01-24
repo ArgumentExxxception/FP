@@ -3,7 +3,7 @@ module CommandExecutor (Command(..), executeCommand, Program(..), Memory) where
 import Control.Monad.State
 import CompairingOperations (eq, mr, ls)
 import StackOperations (pop, push, swap, dup, rot, over)
-import AritmeticOperations (add, minus, multi, division, modul, fadd, fsub, fmul, fdiv)
+import AritmeticOperations (add, minus, multi, division, modul, fadd, fsub, fmul, fdiv, fToS, sToF)
 import Text.Megaparsec hiding (State)
 import Control.Monad.IO.Class (liftIO)
 import Types (StackValue(..), Stack, Memory,Command(..),Program(..))
@@ -34,6 +34,8 @@ executeCommand FAdd = fadd
 executeCommand FSub = fsub
 executeCommand FMul = fmul
 executeCommand FDiv = fdiv
+executeCommand FToS = fToS
+executeCommand SToF = sToF
 executeCommand (PushInt n) = do
     (stack, memory) <- get
     put (IntValue n : stack, memory)
